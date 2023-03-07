@@ -1,0 +1,134 @@
+org: stkbmf
+app: lunarlink-loyalty-api
+service: lunarlink-loyalty-api
+frameworkVersion: '3'
+
+plugins:
+  - serverless-dynamodb-local
+  - serverless-offline
+
+useDotenv: true
+
+custom:
+  dynamodb:
+    stages:
+      - dev
+    start:
+      port: 8000
+      inMemory: true
+      migrate: true
+    # Comment if you don't have a DynamoDB running locally
+      noStart: true
+    migration:
+      dir: offline/migrations
+  stages:
+    - dev
+    - staging
+    - prod
+  solanaNet:
+    local: "devnet"
+    dev: "devnet"
+    staging: "testnet"
+    prod: "mainnet-beta"
+  usdcAddress:
+    local: "Gh9ZwEmdLJ8DscKNTkTqPbNwLNNBjuSzaG9Vp2KGtKJr"
+    dev: "Gh9ZwEmdLJ8DscKNTkTqPbNwLNNBjuSzaG9Vp2KGtKJr"
+    staging: "Gh9ZwEmdLJ8DscKNTkTqPbNwLNNBjuSzaG9Vp2KGtKJr"
+    prod: "Gh9ZwEmdLJ8DscKNTkTqPbNwLNNBjuSzaG9Vp2KGtKJr"
+
+
+provider:
+  name: aws
+  stage: ${opt:stage,'dev'}
+  region: eu-west-1
+  deploymentMethod: direct
+  runtime: nodejs16.x
+  # memorySize: 512 # optional, in MB, default is 1024
+  timeout: 10 # optional, in seconds, default is 6
+  environment:
+    DYNAMODB_TABLE: ${self:service}-${sls:stage}
+    SYSTEM_WALLET: ${env:SYSTEM_WALLET}
+    SOLANA_NET: ${self:custom.solanaNet.${self:provider.stage}}
+    USDC_ADDRESS: ${self:custom.usdcAddress.${self:provider.stage}}
+
+  httpApi:
+    cors: true
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - dynamodb:*
+          Resource: "arn:aws:dynamodb:${aws:region}:*:table/${self:provider.environment.DYNAMODB_TABLE}"
+
+functions:
+  createProgram:
+    handler: src/functions/create-program.createProgram
+    timeout: 60
+    events:
+      - httpApi:
+          path: /program
+          method: post
+
+  listPrograms:
+    handler: src/functions/list-programs.list
+    events:
+      - httpApi:
+          path: /program
+          method: get
+
+  getProgram:
+    handler: src/functions/get-program.get
+    events:
+      - httpApi:
+          path: /program/{id}
+          method: get
+
+  addPartner:
+    handler: src/functions/add-partner.addPartner
+    events:
+      - httpApi:
+          path: /program/{id}/addpartner
+          method: post
+
+  getPartner:
+    handler: src/functions/get-partner.get
+    events:
+      - httpApi:
+          path: /partner/{id}
+          method: get
+
+  getTransaction:
+    handler: src/transaction.get
+    events:
+      - httpApi:
+          path: /transaction
+          method: get
+
+  postTransaction:
+    handler: src/functions/transaction.post
+    timeout: 10
+    events:
+      - httpApi:
+          path: /transaction
+          method: post
+
+resources:
+  Resources:
+    TodosDynamoDbTable:
+      Type: 'AWS::DynamoDB::Table'
+      DeletionPolicy: Retain
+      Properties:
+        AttributeDefinitions:
+          - AttributeName: pk
+            AttributeType: S
+          # - AttributeName: sk
+          #   AttributeType: S
+        KeySchema:
+          - AttributeName: pk
+            KeyType: HASH
+          # - AttributeName: sk
+          #   KeyType: RANGE
+        BillingMode: PAY_PER_REQUEST
+        TableName: ${self:provider.environment.DYNAMODB_TABLE}
+
