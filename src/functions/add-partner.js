@@ -25,6 +25,18 @@ module.exports.addPartner = async (event, context, callback) => {
             partner.walletAddress = createWallet();
         }
 
+        const endpoint = clusterApiUrl(config.solanaNet);
+        const connection = new Connection(endpoint);
+        const systemWalletKeypair = Keypair.fromSecretKey(base58.decode(config.systemWallet));
+        const usdcAddress = new PublicKey(config.usdcAddress);
+        const partnerPublicKey = new PublicKey(partner.walletAddress);
+        const partnerUsdcAccount = await getOrCreateAssociatedTokenAccount(
+            connection,
+            systemWalletKeypair,
+            usdcAddress,
+            partnerPublicKey
+        );
+
         partner.associatedProgram = program.id;
         program.partners.push(partner);
         await Program.put(program);
@@ -34,6 +46,6 @@ module.exports.addPartner = async (event, context, callback) => {
 
     } catch (error) {
         console.error('error', error);
-        return Responses._400({ message: error.message || 'failed to add partner' });
+        return Responses._400({ message: error.message || 'failed to create partner' });
     };
 };

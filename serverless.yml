@@ -108,7 +108,7 @@ functions:
 
   postTransaction:
     handler: src/functions/transaction.post
-    timeout: 10
+    timeout: 30
     events:
       - httpApi:
           path: /transaction

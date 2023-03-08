@@ -9,7 +9,7 @@ module.exports.get = async (event, context, callback) => {
     try {
         console.log(JSON.stringify(event));
         return Responses._200({
-            label: 'Moonforge Loyalty',
+            label: 'LunarLink Loyalty',
             icon: process.env.ICON,
         });
     }
@@ -22,8 +22,11 @@ module.exports.get = async (event, context, callback) => {
 module.exports.post = async (event, context, callback) => {
     try {
         const body = JSON.parse(event.body);
-
         const reqParams = event.queryStringParameters;
+
+        console.log("Request payload: ", body);
+        console.log("Request params: ", reqParams);
+
         const {
             amount: amount = amount.toNumber(),
             reference,
@@ -68,6 +71,7 @@ module.exports.post = async (event, context, callback) => {
             usdcAddress, // token
             buyerPublicKey // owner account
         );
+        console.log("Buyer's USDC account: ", buyerUsdcAccount);
         
         const buyerTokenAccount = await getOrCreateAssociatedTokenAccount(
             connection,
@@ -75,6 +79,7 @@ module.exports.post = async (event, context, callback) => {
             tokenAddress,
             buyerPublicKey
         );
+        console.log("Buyer's token account: ", buyerTokenAccount);
 
         const partnerUsdcAccount = await getOrCreateAssociatedTokenAccount(
             connection,
@@ -82,6 +87,7 @@ module.exports.post = async (event, context, callback) => {
             usdcAddress,
             partnerPublicKey
         );
+        console.log("Partner's USDC account: ", partnerUsdcAccount);
 
         // Get the buyer's USDC token account address
         const buyerUsdcAddress = await getAssociatedTokenAddress(
@@ -102,15 +108,16 @@ module.exports.post = async (event, context, callback) => {
         const buyerPointsAmount = Number(buyerTokenAccount.amount) / 10 ** tokenMint.decimals;
         const usePoints = (reqParams.usePoints && reqParams.usePoints == 'true' && buyerPointsAmount > 0)
             ? true : false;
-
+        console.log("Buyer points amount: ", buyerPointsAmount);
+        
         let amountToPay = amount;
         let pointsUsed = 0;
         let rewardPoints = 0;
 
         if (usePoints) {
             if (amountToPay <= buyerPointsAmount) {
-                amountToPay = 0;
                 pointsUsed = amountToPay;
+                amountToPay = 0;
             } else {
                 amountToPay = amountToPay - buyerPointsAmount;
                 pointsUsed = buyerPointsAmount;
@@ -119,7 +126,9 @@ module.exports.post = async (event, context, callback) => {
             //calulate reward based on amountToPay
             rewardPoints = amountToPay * program.settings.rewardRate / 100;
         }
-
+        console.log("Amount to pay: ", amountToPay);
+        console.log("Reward points: ", rewardPoints);
+        console.log("Points used: ", pointsUsed);
         if (amountToPay > buyerUsdcAccount.amount) throw new Error('insufficient funds');
 
         // instruction to send USDC from the buyer to the partner
