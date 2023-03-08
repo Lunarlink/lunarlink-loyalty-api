@@ -50,6 +50,7 @@ provider:
     SYSTEM_WALLET: ${env:SYSTEM_WALLET}
     SOLANA_NET: ${self:custom.solanaNet.${self:provider.stage}}
     USDC_ADDRESS: ${self:custom.usdcAddress.${self:provider.stage}}
+    ICON: https://moonforge.s3.eu-west-1.amazonaws.com/lunarlink-logo.png
 
   httpApi:
     cors: true
@@ -99,7 +100,7 @@ functions:
           method: get
 
   getTransaction:
-    handler: src/transaction.get
+    handler: src/functions/transaction.get
     events:
       - httpApi:
           path: /transaction

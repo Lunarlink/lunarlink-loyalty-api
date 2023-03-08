@@ -4,6 +4,7 @@ module.exports =
     systemWallet: getEnv('SYSTEM_WALLET'),
     solanaNet: getEnv('SOLANA_NET'),
     usdcAddress: getEnv('USDC_ADDRESS'),
+    icon: getEnv('ICON'),
 };
 
 
