@@ -126,11 +126,15 @@ module.exports.post = async (event, context, callback) => {
             //calulate reward based on amountToPay
             rewardPoints = amountToPay * program.settings.rewardRate / 100;
         }
+        const usdcAmount = Number(buyerUsdcAccount.amount) / 10 ** usdcMint.decimals;
+        console.log("Buyer usdc amount: ", usdcAmount);
         console.log("Amount to pay: ", amountToPay);
         console.log("Reward points: ", rewardPoints);
         console.log("Points used: ", pointsUsed);
-        if (amountToPay > buyerUsdcAccount.amount) throw new Error('insufficient funds');
-
+        if (amountToPay > usdcAmount) {
+            console.log("Insufficient funds - buyer's USDC amount");
+            throw new Error('Insufficient funds - USDC');
+        }
         // instruction to send USDC from the buyer to the partner
         const transferInstruction = createTransferCheckedInstruction(
             buyerUsdcAddress, // source
@@ -189,7 +193,7 @@ module.exports.post = async (event, context, callback) => {
 
     } catch (error) {
         console.error('error', error);
-        return Responses._400({ error: error.message || 'failed to execute transaction' });
+        return Responses._500({ error: error.message || 'failed to execute transaction' });
     };
 
 };

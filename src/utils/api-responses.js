@@ -25,6 +25,9 @@ const Responses = {
     _404(data = {}) {
         return this._DefineResponse(404, data);
     },
+    _500(data = {}) {
+        return this._DefineResponse(500, data);
+    },
 };
 
 module.exports = Responses;
