@@ -23,7 +23,6 @@ const Program = new Entity({
 
     attributes: {
         pk: { partitionKey: true, prefix: 'program#', hidden: true },
-        // sk: { sortKey: true, prefix: 'address#', hidden: true },
         id: ['pk', 0, { save: true }],
         tokenAddress: { type: 'string', default: '' }, //address
         tokenName: { type: 'string' },
@@ -45,7 +44,6 @@ const Partner = new Entity({
 
     attributes: {
         pk: { partitionKey: true, prefix: 'partner#', hidden: true },
-        // sk: { sortKey: true, prefix: 'address#', hidden: true },
         id: ['pk', 0, { save: true }],
         walletAddress: { type: 'string', default: '' },
         associatedProgram: { type: 'string', default: '' },

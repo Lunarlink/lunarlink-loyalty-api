@@ -1,7 +1,7 @@
 const { Program, Partner } = require('../model/model');
 const Responses = require('../utils/api-responses');
 const { v4: uuidv4 } = require('uuid');
-const { PublicKey, Keypair } = require("@solana/web3.js");
+const { Keypair, PublicKey} = require('@solana/web3.js');
 
 function createWallet() {
     const newPartnerWallet = Keypair.generate();
@@ -24,18 +24,6 @@ module.exports.addPartner = async (event, context, callback) => {
         } catch {
             partner.walletAddress = createWallet();
         }
-
-        const endpoint = clusterApiUrl(config.solanaNet);
-        const connection = new Connection(endpoint);
-        const systemWalletKeypair = Keypair.fromSecretKey(base58.decode(config.systemWallet));
-        const usdcAddress = new PublicKey(config.usdcAddress);
-        const partnerPublicKey = new PublicKey(partner.walletAddress);
-        const partnerUsdcAccount = await getOrCreateAssociatedTokenAccount(
-            connection,
-            systemWalletKeypair,
-            usdcAddress,
-            partnerPublicKey
-        );
 
         partner.associatedProgram = program.id;
         program.partners.push(partner);

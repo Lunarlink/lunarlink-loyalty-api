@@ -4,7 +4,8 @@ const Responses = require('../utils/api-responses');
 module.exports.list = async (event, context, callback) => {
   try {
     const result = await Program.scan();
-    return Responses._200(result.Items);
+    const programs = result.Items.filter((e) => e.entity === 'Program');
+    return Responses._200(programs);
   }
   catch (error) {
     console.log('error', error);
