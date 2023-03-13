@@ -9,7 +9,8 @@ module.exports.createProgram = async (event, context, callback) => {
     const data = JSON.parse(event.body);
     data.id = uuidv4();
 
-    const tokenAddress = await createToken(config.systemWallet, data.tokenName, data.tokenSymbol, data.image, data.description, data.settings.decimals);
+    const decimals = (data.type === 'points') ? data.settings.decimals || 2 : 0;
+    const tokenAddress = await createToken(config.systemWallet, data.tokenName, data.tokenSymbol, data.image, data.description, decimals);
     data.tokenAddress = tokenAddress;
 
     await Program.put(data);
